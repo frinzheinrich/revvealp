@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 import json
+import os
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
@@ -15,6 +16,11 @@ db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
+
+# Check if the database file exists, if not, create it
+if not os.path.exists('database.db'):
+    with app.app_context():
+        db.create_all()
 
 # User model
 class User(db.Model, UserMixin):
