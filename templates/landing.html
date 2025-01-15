@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Landing Page</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Resetting margin and padding */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Background setup */
+        .background {
+            background: url('/static/images/wbg.png') no-repeat center center fixed;
+            background-size: cover;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        /* Header section */
+        .header {
+            text-align: center;
+            margin-top: 20px;
+            color: rgb(24, 24, 24);
+            padding: 0 10px; 
+        }
+
+        .header h1 {
+            font-size: 2.5rem; 
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .header h2 {
+            font-size: 1.2rem; 
+            margin: 10px 0;
+        }
+
+        /* Content container */
+        .content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            text-align: center;
+            align-items: center;
+            padding: 0 10px; 
+        }
+
+        /* Island shapes */
+        .island {
+            background: rgba(218, 216, 216, 0.8);
+            color: #333;
+            font-size: 1.2rem;
+            padding: 15px 30px;
+            border-radius: 50px;
+            width: 80%;
+            max-width: 300px; 
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            font-family: 'Playfair Display', serif; 
+        }
+
+        .island:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Footer setup */
+        .footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+        }
+
+        .footer-icon {
+            width: 30px; 
+            height: 30px;
+        }
+
+        .footer-icon.active {
+            filter: hue-rotate(180deg); /* Change the color for active icon */
+        }
+
+        /* Media queries for small devices */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .header h2 {
+                font-size: 1rem;
+            }
+
+            .island {
+                font-size: 1rem;
+                padding: 10px 20px;
+            }
+
+            .footer-icon {
+                width: 25px;
+                height: 25px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .header h2 {
+                font-size: 0.9rem;
+            }
+
+            .island {
+                font-size: 0.9rem;
+            }
+
+            .footer-icon {
+                width: 20px;
+                height: 20px;
+            }
+        }
+
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent overlay */
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            width: 80%;
+            max-width: 400px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            animation: slideIn 0.3s ease-out;
+            text-align: center;
+        }
+
+        .modal-content h3 {
+            font-size: 1.4rem;
+            color: #333;
+        }
+
+        .modal-content p {
+            font-size: 1rem;
+            color: #666;
+        }
+
+        .modal-content .price {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #4caf50;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .btn-close {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #f44336;
+            color: white;
+            cursor: pointer;
+        }
+
+        .btn-close:hover {
+            background-color: #e53935;
+        }
+
+        /* Animations */
+        @keyframes slideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background">
+        <!-- Header Section -->
+        <div class="header">
+            <h1>Welcome to Revveal!</h1>
+            <h2>   Services</h2>
+        </div>
+
+        <!-- Content Section -->
+        <div class="content">
+            <div class="island" id="dapper">Dapper</div>
+            <div class="island" id="suave">Suave</div>
+            <div class="island" id="slick">Slick</div>
+        </div>
+    </div>
+
+    <div class="modal" id="serviceModal">
+        <div class="modal-content" id="modalContent">
+            <h3 id="serviceName"></h3>
+            <p id="serviceDescription"></p>
+            <p class="price" id="servicePrice"></p>
+            <div class="modal-buttons">
+                <button class="btn-close" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Modal open and close functionality
+        const modal = document.getElementById('serviceModal');
+        const modalContent = document.getElementById('modalContent');
+        const serviceName = document.getElementById('serviceName');
+        const serviceDescription = document.getElementById('serviceDescription');
+        const servicePrice = document.getElementById('servicePrice');
+
+        // Service data
+        const services = {
+            dapper: {
+                name: 'Dapper',
+                description: 'Dapper provides a premium wash that includes a full exterior clean, tire shine, and a wax finish to keep your car looking fresh all month long.',
+                price: 'P799/month'
+            },
+            suave: {
+                name: 'Suave',
+                description: 'Suave offers an eco-friendly carwash with a waterless formula, perfect for busy drivers who need a quick and efficient clean without wasting water.',
+                price: 'P899/month'
+            },
+            slick: {
+                name: 'Slick',
+                description: 'Slick combines cutting-edge technology with premium cleaning solutions, giving your car a spot-free shine and a flawless finish every time.',
+                price: 'P999/month'
+            }
+        };
+
+        // Function to open the modal with service details
+        function openModal(service) {
+            serviceName.textContent = services[service].name;
+            serviceDescription.textContent = services[service].description;
+            servicePrice.textContent = services[service].price;
+            modal.style.display = 'flex';
+        }
+
+        // Function to close the modal
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        // Event listeners for islands
+        document.getElementById('dapper').addEventListener('click', function() {
+            openModal('dapper');
+        });
+
+        document.getElementById('suave').addEventListener('click', function() {
+            openModal('suave');
+        });
+
+        document.getElementById('slick').addEventListener('click', function() {
+            openModal('slick');
+        });
+    </script>
+
+    <!-- Footer Section -->
+    <div class="footer">
+        <a href="/" id="homeLink">
+            <img src="/static/images/home.png" alt="Home" class="footer-icon" id="homeIcon">
+        </a>
+        <a href="/inventory" id="inventoryLink">
+            <img src="/static/images/car.png" alt="Inventory" class="footer-icon" id="inventoryIcon">
+        </a>
+        <a href="/profile" id="profileLink">
+            <img src="/static/images/profp.png" alt="Profile" class="footer-icon" id="profileIcon">
+        </a>
+    </div>
+</body>
+</html>
