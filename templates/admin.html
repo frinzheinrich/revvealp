@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Page</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Admin Dashboard</h1>
+    <div>
+        <h2>Users</h2>
+        <table border="1">
+            <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Profile Data</th>
+            </tr>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.id }}</td>
+                <td>{{ user.username }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.profile_data }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    <div>
+        <h2>Vehicles</h2>
+        <!-- Filter options -->
+        <div>
+            <label for="user-filter">Filter by User:</label>
+            <select id="user-filter">
+                <option value="all">All Users</option>
+                {% for user in users %}
+                <option value="{{ user.id }}">User ID: {{ user.id }}</option>
+                {% endfor %}
+            </select>
+            <button id="filter-button">Apply Filter</button>
+        </div>
+        <table border="1" id="vehicles-table">
+            <tr>
+                <th>ID</th>
+                <th>User ID</th>
+                <th>Make</th>
+                <th>Model</th>
+                <th>Year</th>
+                <th>Color</th>
+                <th>Service</th>
+                <th>License Plate</th>
+                <th>Vehicle Type</th>
+                <th>Status</th>
+                <th>Schedule</th>
+                <th>Actions</th>
+            </tr>
+            {% for vehicle in vehicles %}
+            <tr data-user-id="{{ vehicle.user_id }}">
+                <td>{{ vehicle.id }}</td>
+                <td>{{ vehicle.user_id }}</td>
+                <td contenteditable="true" class="editable" data-id="{{ vehicle.id }}" data-field="make">{{ vehicle.make }}</td>
+                <td contenteditable="true" class="editable" data-id="{{ vehicle.id }}" data-field="model">{{ vehicle.model }}</td>
+                <td contenteditable="true" class="editable" data-id="{{ vehicle.id }}" data-field="year">{{ vehicle.year }}</td>
+                <td contenteditable="true" class="editable" data-id="{{ vehicle.id }}" data-field="color">{{ vehicle.color }}</td>
+                <td contenteditable="true" class="editable" data-id="{{ vehicle.id }}" data-field="service">{{ vehicle.service }}</td>
+                <td contenteditable="true" class="editable" data-id="{{ vehicle.id }}" data-field="license_plate">{{ vehicle.license_plate }}</td>
+                <td contenteditable="true" class="editable" data-id="{{ vehicle.id }}" data-field="vehicle_type">{{ vehicle.vehicle_type }}</td>
+                <td contenteditable="true" class="editable" data-id="{{ vehicle.id }}" data-field="status">{{ vehicle.status }}</td>
+                <td contenteditable="true" class="editable" data-id="{{ vehicle.id }}" data-field="schedule">{{ vehicle.schedule }}</td>
+                <td>
+                    <button class="btn-delete" data-id="{{ vehicle.id }}">Delete</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    <script>
+        // Filter vehicles based on user selection
+        document.getElementById('filter-button').addEventListener('click', function () {
+            const selectedUserId = document.getElementById('user-filter').value;
+            const rows = document.querySelectorAll('#vehicles-table tr[data-user-id]');
+            
+            rows.forEach(row => {
+                if (selectedUserId === 'all' || row.getAttribute('data-user-id') === selectedUserId) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+
+        // Editable cell functionality
+        document.querySelectorAll('.editable').forEach(cell => {
+            cell.addEventListener('blur', function () {
+                const id = this.dataset.id;
+                const field = this.dataset.field;
+                const value = this.textContent.trim();
+
+                fetch('/admin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'update',
+                        id: id,
+                        [field]: value
+                    })
+                }).then(response => response.json())
+                  .then(data => {
+                      if (!data.success) alert('Failed to update');
+                  });
+            });
+        });
+
+        // Delete functionality
+        document.querySelectorAll('.btn-delete').forEach(button => {
+            button.addEventListener('click', function () {
+                const id = this.dataset.id;
+
+                fetch('/admin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'delete',
+                        id: id
+                    })
+                }).then(response => response.json())
+                  .then(data => {
+                      if (data.success) location.reload();
+                      else alert('Failed to delete');
+                  });
+            });
+        });
+    </script>
+</body>
+</html>

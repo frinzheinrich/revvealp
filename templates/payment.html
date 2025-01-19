@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-image: url('/static/images/wbg.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #333;
+        }
+        .container {
+            background-color: rgba(255, 255, 255, 0.9);
+            margin: 40px auto;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 800px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        .total {
+            font-weight: bold;
+            text-align: right;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+        }
+        .qr-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .qr-container img {
+            max-width: 200px;
+        }
+        .qr-container p {
+            margin: 10px 0;
+        }
+        .mini-island {
+            background: rgba(70, 130, 180, 0.8);
+            color: white;
+            border-radius: 15px;
+            padding: 8px 15px;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            text-align:center;
+        }
+
+        .mini-island:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .container {
+                margin: 20px auto;
+                padding: 15px;
+            }
+            table, th, td {
+                font-size: 0.9rem;
+            }
+            .total {
+                font-size: 1rem;
+            }
+            .qr-container img {
+                max-width: 150px;
+            }
+            .mini-island {
+                font-size: 0.8rem;
+                padding: 5px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Payment Summary</h1>
+        <p><strong>Name:</strong> {{ name }}</p>
+
+        <h2>Garage</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Make</th>
+                    <th>Model</th>
+                    <th>Year</th>
+                    <th>License Plate</th>
+                    <th>Service</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for vehicle in vehicles %}
+                <tr>
+                    <td>{{ vehicle.make }}</td>
+                    <td>{{ vehicle.model }}</td>
+                    <td>{{ vehicle.year }}</td>
+                    <td>{{ vehicle.license_plate }}</td>
+                    <td>{{ vehicle.service }}</td>
+                    <td class="amount">
+                        {% if vehicle.service == 'Dapper' %}
+                            $799
+                        {% elif vehicle.service == 'Suave' %}
+                            $899
+                        {% elif vehicle.service == 'Slick' %}
+                            $999
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="total">
+            <strong>Total Amount: $<span id="total">0</span></strong>
+        </div>
+        <div class="qr-container">
+            <h3>Scan to Pay</h3>
+            <p><strong>Gcash Number:</strong> 09176975817 </p>
+            <img src="/static/images/qr.png" alt="QR Code for Payment">
+        </div>
+    </div>
+    <div class="mini-island" role="button" tabindex="0" onclick="window.location.href='/profile'">
+        Back to Home
+    </div>
+    <script>
+        // Calculate total from amount cells
+        let total = 0;
+        document.querySelectorAll('.amount').forEach(cell => {
+            // Extract number from the price string (removes the $ sign)
+            total += parseInt(cell.textContent.replace('$', '').trim());
+        });
+        document.getElementById('total').textContent = total;
+    </script>
+</body>
+</html>

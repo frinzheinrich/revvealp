@@ -8,6 +8,7 @@ import os
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 
+
 # Configure the database
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -44,7 +45,8 @@ class Vehicle(db.Model):
     service = db.Column(db.String(200))
     license_plate = db.Column(db.String(20), nullable=False, unique=True)
     vehicle_type = db.Column(db.String(50), nullable=False)
-
+    status = db.Column(db.String(20), nullable=False, default="unpaid")
+    schedule = db.Column(db.String(100), nullable=True) 
 
 # Create tables (run this once)
 with app.app_context():
@@ -99,7 +101,8 @@ def inventory():
             color=data['color'],
             service=data.get('service'),
             license_plate=data['license_plate'],
-            vehicle_type=data['vehicle_type']
+            vehicle_type=data['vehicle_type'],
+            status="unpaid"
         )
         db.session.add(new_vehicle)
         db.session.commit()
@@ -156,6 +159,92 @@ def profile():
         # Serve profile page
         profile_data = json.loads(current_user.profile_data or '{}')
         return render_template('profile.html', **profile_data)
+    
+@app.route('/payment')
+@login_required
+def payment():
+    profile_data = json.loads(current_user.profile_data or '{}')
+    name = profile_data.get('name', 'N/A')  # Extract name
+    vehicles = Vehicle.query.filter_by(user_id=current_user.id, status="unpaid").all()
+    return render_template('payment.html', 
+                           name=name, 
+                           vehicles=vehicles)
+
+@app.route('/get_schedule/<int:vehicle_id>', methods=['GET'])
+@login_required
+def get_schedule(vehicle_id):
+    vehicle = Vehicle.query.get(vehicle_id)
+    if vehicle and vehicle.user_id == current_user.id:
+        return jsonify({'schedule': vehicle.schedule or None}), 200
+    return jsonify({'schedule': None}), 404
+
+@app.route('/save_schedule/<int:vehicle_id>', methods=['POST'])
+@login_required
+def save_schedule(vehicle_id):
+    vehicle = Vehicle.query.get(vehicle_id)
+    if vehicle and vehicle.user_id == current_user.id:
+        data = request.get_json()
+        schedule = data.get('schedule')
+        vehicle.schedule = schedule
+        db.session.commit()
+        return jsonify({'success': True}), 200
+    return jsonify({'success': False, 'message': 'Vehicle not found or access denied'}), 404
+
+@app.route('/remove_schedule/<int:vehicle_id>', methods=['POST'])
+@login_required
+def remove_schedule(vehicle_id):
+    vehicle = Vehicle.query.get(vehicle_id)
+    if vehicle and vehicle.user_id == current_user.id:
+        vehicle.schedule = None
+        db.session.commit()
+        return jsonify({'success': True}), 200
+    return jsonify({'success': False, 'message': 'Vehicle not found or access denied'}), 404
+
+
+@app.route('/admin', methods=['GET', 'POST'])
+@login_required
+def admin():
+    # Ensure only admins can access this page
+    if current_user.username != 'revtestadmin':  # Replace 'admin' with your admin username
+        flash("Access denied!", "danger")
+        return redirect(url_for('landing'))
+
+    if request.method == 'POST':
+        data = request.get_json()
+        action = data.get('action')
+        vehicle_id = data.get('id')
+
+        if action == 'update':
+            # Update vehicle data
+            vehicle = Vehicle.query.get(vehicle_id)
+            if vehicle:
+                vehicle.make = data.get('make', vehicle.make)
+                vehicle.model = data.get('model', vehicle.model)
+                vehicle.year = data.get('year', vehicle.year)
+                vehicle.color = data.get('color', vehicle.color)
+                vehicle.service = data.get('service', vehicle.service)
+                vehicle.license_plate = data.get('license_plate', vehicle.license_plate)
+                vehicle.vehicle_type = data.get('vehicle_type', vehicle.vehicle_type)
+                vehicle.status = data.get('status', vehicle.status)
+                vehicle.schedule = data.get('schedule', vehicle.schedule)
+                db.session.commit()
+                return jsonify({'success': True}), 200
+
+        elif action == 'delete':
+            # Delete vehicle
+            vehicle = Vehicle.query.get(vehicle_id)
+            if vehicle:
+                db.session.delete(vehicle)
+                db.session.commit()
+                return jsonify({'success': True}), 200
+
+        return jsonify({'success': False, 'message': 'Invalid action'}), 400
+
+    # Fetch all users and their vehicles
+    users = User.query.all()
+    vehicles = Vehicle.query.all()
+    return render_template('admin.html', users=users, vehicles=vehicles)
+
 
 @app.route('/logout')
 def logout():

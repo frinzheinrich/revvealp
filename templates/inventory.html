@@ -99,6 +99,17 @@
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
         }
 
+        .btn-schedule {
+            background: rgba(70, 130, 180, 0.8);
+            color: white;
+            border-radius: 15px;
+            padding: 8px 15px;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
         .main-content {
         min-height: calc(100vh - 60px); /* Adjust for footer height */
         padding-bottom: 60px; /* Ensure no overlap with footer */
@@ -195,6 +206,13 @@
             width: 48%; /* Ensure buttons are side by side */
         }
 
+        #schedule-button {
+            background-color: #6BAED6; /* Ensure color matches */
+            border: none; /* Remove the inner border or box */
+            border-radius: 25px; /* Match other buttons */
+            padding: 10px 20px;
+        }
+
         .btn-save {
             background-color: #4caf50;
             color: white;
@@ -270,7 +288,11 @@
                         <img src="/static/images/{{ vehicle.vehicle_type | lower }}.png" alt="{{ vehicle.type }}">
                         <div class="mini-islands">
                             <div class="mini-island">{{ vehicle.service }}</div>
-                            <div class="mini-island">Schedule</div>
+                            <div class="mini-island">
+                                <schedule-button  data-id="{{ vehicle.id }}" onclick="openScheduleModal(this)">
+                                    Schedule
+                                </schedule-button>
+                            </div>
                             <div class="mini-island">History</div>
                         </div>
                     </div>
@@ -290,6 +312,21 @@
                 <button id="remove-vehicle-btn">Remove Vehicle</button>
             </div>
         </div>
+
+        <div id="scheduleModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeScheduleModal()">&times;</span>
+                <h2>Schedule for <span id="vehicleName"></span></h2>
+                <form id="scheduleForm">
+                    <label for="scheduleInput">Schedule:</label>
+                    <input type="text" id="scheduleInput" name="schedule" placeholder="Enter schedule">
+                    <input type="hidden" id="vehicleIdInput" name="vehicle_id">
+                    <button type="button" onclick="saveSchedule()">Save</button>
+                </form>
+                <button type="button" onclick="deleteSchedule()">Remove Schedule</button>
+            </div>
+        </div>
+        
 
         <!-- Modal for Adding New Vehicle -->
         <div id="add-vehicle-modal" class="modal">
@@ -433,7 +470,67 @@
         }
     </script>
 
+    <script>
+        function openScheduleModal(button) {
+            const vehicleId = button.dataset.id;
+            const vehicleName = button.closest('.big-island').querySelector('h2').textContent;
 
+            // Populate modal
+            document.getElementById('vehicleName').textContent = vehicleName;
+            document.getElementById('vehicleIdInput').value = vehicleId;
+
+            // Fetch current schedule
+            fetch(`/get_schedule/${vehicleId}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('scheduleInput').value = data.schedule || '';
+                    document.getElementById('scheduleModal').style.display = 'block';
+                })
+                .catch(err => alert('Error fetching schedule.'));
+        }
+
+        function closeScheduleModal() {
+            document.getElementById('scheduleModal').style.display = 'none';
+        }
+
+        function saveSchedule() {
+            const vehicleId = document.getElementById('vehicleIdInput').value;
+            const schedule = document.getElementById('scheduleInput').value;
+
+            fetch(`/save_schedule/${vehicleId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ schedule })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Schedule saved successfully!');
+                    closeScheduleModal();
+                } else {
+                    alert('Failed to save schedule.');
+                }
+            });
+        }
+
+        function deleteSchedule() {
+            const vehicleId = document.getElementById('vehicleIdInput').value;
+
+            fetch(`/remove_schedule/${vehicleId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Schedule removed successfully!');
+                    closeScheduleModal();
+                } else {
+                    alert('Failed to remove schedule.');
+                }
+            });
+        }
+    </script>
 
     <!-- Footer Section -->
     <div class="footer">
